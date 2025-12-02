@@ -31,7 +31,7 @@ export const options = {
 
 export default function () {
   // define URL and request body
-  const url = 'http://localhost:8080/buckets';
+  const url = 'http://localhost:8000/buckets';
   const params = {
     headers: {
       'Content-Type': 'application/json',
