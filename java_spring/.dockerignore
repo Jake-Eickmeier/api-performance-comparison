@@ -1,0 +1,17 @@
+# Maven build artifacts
+target/
+!target/*.jar # If you use multi-stage builds and need to copy a specific JAR from an earlier stage
+
+# IDE and OS specific files
+.idea/
+.vscode/
+.DS_Store
+*.log
+npm-debug.log
+
+# Version control
+.git/
+.gitignore
+
+# Environment files
+.env

@@ -28,6 +28,15 @@ scrape_configs:
   static_configs:
   - targets:
     - host.docker.internal:8000
+- job_name: springapi
+  honor_timestamps: true
+  scrape_interval: 10s
+  scrape_timeout: 8s
+  metrics_path: /actuator/prometheus
+  scheme: http
+  static_configs:
+  - targets:
+    - host.docker.internal:8001
 - job_name: cadvisor
   scrape_interval: 5s
   static_configs:
