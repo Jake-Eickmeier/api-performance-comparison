@@ -20,7 +20,7 @@ There are k6 load tests for each service, found in the root directory of this pr
 
 To run both load tests simultaneously there is a script for your convenience. Make sure that k6 is installed and simply run `bash run-k6-tests.sh`
 
-The load test will run for approximately 5 minutes.
+The load test will run for approximately 10 minutes and scale to 200 Virtual Users.
 
 *Note*: At time of writing, there is a bug on my machine in which container names are not visible by cAdvisor. As such, the CPU and Memory Usage queries must be re-pointed to the appropriate containers by ID after runtime. I will endeavour to solve this at a later time, but am also considering other metrics exporters and/or kubernetes so am leaving it as-is for the short term.
 
@@ -37,6 +37,20 @@ These are the results from a 10-minute k6 load test on both APIs with the same v
 - **Memory usage**: The Spring application uses substantially more memory, where it also fluctuates much more greatly. This is likely due to the overhead resulting from the JVM, and also because it was under more load.
 - **CPU Usage**: The Spring application uses more CPU resource during load, however, it is also under more load.
     - Note that the FastAPI application peaks at exactly 1 CPU used. This is because by default, FastAPI applications will only use 1 core. In future tests I will increase the number of workers in my container to allow more CPU for a more fair comparison.
+
+### Test 2
+![The 2nd comparison of memory usage, cpu usage, latency, and requests per second](./resources/Comparison2.png)
+
+This test is the same as Test 1 (see above), but with FastAPI allowed to run 3 workers to compensate for some of the differences in resource usage. Some key observations include:
+- **P99 Latency**: The latency improved substantially for FastAPI, even beating that of Spring in many cases
+- **Requests Per Second**: FastAPI was a little slower to start up, but ramped higher than Spring once the VUs were nearing their peak. 
+- **Memory usage**: The Spring application still uses substantially more memory due to the overhead of the JVM. The FastAPI application stays relatively stable still.
+- **CPU Usage**: The CPU usage is much more even now with 3 workers for FastAPI, as predicted in test 1.
+
+Disclaimer: There was some odd behaviour for FastAPI + Prometheus that I don't yet fully understand the root cause of at time of writing, as I am new to FastAPI. See below image:
+![](./resources/Comparison2-Odd.png)
+
+As you can see in the above image, the metrics for FastAPI request count continued to be emitted long after the k6 load test had finished. I checked the application logs, and in fact, no further requests were happening at that time, which is also easily confirmed by the CPU usage having a completely normal decline and also by the k6 logs. I believe that for some reason the metrics emission was exceptionally laggy, causing the request metrics to be emitted quite late. Further investigations will be required. Perhaps it could be because of my bucket configuration?
 
 ## Tech stack
 ### API
@@ -68,6 +82,6 @@ These are the results from a 10-minute k6 load test on both APIs with the same v
 
 ## Future works:
 - Add more functional endpoints, such as querying a database for some object
-- Normalize the comparison by allowing FastAPI to use more CPU and memory (add workers)
+- ~~Normalize the comparison by allowing FastAPI to use more CPU and memory (add workers)~~ ✅ 
 - Normalize the traffic by applying a static load per second rather than virtual users
 - Manage the applications with Kubernetes
