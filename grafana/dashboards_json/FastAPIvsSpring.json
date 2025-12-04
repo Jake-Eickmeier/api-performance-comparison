@@ -449,7 +449,7 @@
             "uid": "ef5x05lwalszka"
           },
           "editorMode": "builder",
-          "expr": "histogram_quantile(0.99, sum by(le) (rate(http_server_requests_seconds_bucket{uri!=\"/actuator/prometheus\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by(le) (rate(http_server_requests_seconds_bucket{uri!=\"/actuator/prometheus\"}[1m])))",
           "hide": false,
           "legendFormat": "spring",
           "range": true,
