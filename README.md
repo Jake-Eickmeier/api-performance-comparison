@@ -41,16 +41,23 @@ These are the results from a 10-minute k6 load test on both APIs with the same v
 ### Test 2
 ![The 2nd comparison of memory usage, cpu usage, latency, and requests per second](./resources/Comparison2.png)
 
-This test is the same as Test 1 (see above), but with FastAPI allowed to run 3 workers to compensate for some of the differences in resource usage. Some key observations include:
-- **P99 Latency**: The latency improved substantially for FastAPI, even beating that of Spring in many cases
-- **Requests Per Second**: FastAPI was a little slower to start up, but ramped higher than Spring once the VUs were nearing their peak. 
-- **Memory usage**: The Spring application still uses substantially more memory due to the overhead of the JVM. The FastAPI application stays relatively stable still.
-- **CPU Usage**: The CPU usage is much more even now with 3 workers for FastAPI, as predicted in test 1.
+**IMPORTANT**: Test 2 produced some odd results. The performance increase seems too great from simply adding 2 workers as can be seen above, and some metrics were emitted on a delay far after the test should have finished. See below for an example.
 
-Disclaimer: There was some odd behaviour for FastAPI + Prometheus that I don't yet fully understand the root cause of at time of writing, as I am new to FastAPI. See below image:
 ![](./resources/Comparison2-Odd.png)
 
-As you can see in the above image, the metrics for FastAPI request count continued to be emitted long after the k6 load test had finished. I checked the application logs, and in fact, no further requests were happening at that time, which is also easily confirmed by the CPU usage having a completely normal decline and also by the k6 logs. I believe that for some reason the metrics emission was exceptionally laggy, causing the request metrics to be emitted quite late. Further investigations will be required. Perhaps it could be because of my bucket configuration?
+This issue has been identified and solved here: https://github.com/Jake-Eickmeier/api-performance-comparison/pull/10 . Visit this PR for more insights.
+
+For consistency, I will still call this test 2, but ultimately I will re-run this exact test as "Test 3" to keep the information consistent.
+
+### Test 3
+![The 3rd comparison of memory usage, cpu usage, latency, and requests per second](./resources/Comparison3.png)
+
+Immediately these results look much more reliable than test 2, now that I've enabled configurations for multiple processes. Let's break the results down.
+- **P99 latency**: The Spring application still handles requests faster, but the gap is very minimal after the requests start coming in. For the majority of the test, the difference is <0.0005ms
+- **Requests Per Second**: Despite the latency being much smaller, the Spring application is still handling substantially more RPS. This seems to be because FastAPI is hitting its CPU bottleneck under lower load. The RPS handled by FastAPI did improve quite substantially, however, from around 2k -> 5k with the additional workers.
+- **Memory usage**: The Spring application still uses substantially more memory, where it also fluctuates much more greatly. The baseline is much closer around the 200 MiB mark, but even at a similar ~5k RPS, the Spring application had already climbed to nearly double the memory usage over FastAPI.
+- **CPU Usage**: Since adding an extra two workers, the CPU usage is almost identical now that FastAPI peaks at exactly 3 CPU. Keep in mind that it is able to serve less RPS with a similar amount of CPU, and is definitely CPU-bound.
+
 
 ## Tech stack
 ### API
@@ -85,3 +92,4 @@ As you can see in the above image, the metrics for FastAPI request count continu
 - ~~Normalize the comparison by allowing FastAPI to use more CPU and memory (add workers)~~ ✅ 
 - Normalize the traffic by applying a static load per second rather than virtual users
 - Manage the applications with Kubernetes
+- Consider running k6 tests in their own containers so the resource usage of the test itself is more consistent/less subject to other noise from my own machine
