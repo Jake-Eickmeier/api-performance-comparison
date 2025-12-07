@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.routers import buckets as buckets_router
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
-from app.metrics import buckets
+from app.metrics.histogram import buckets
 
 app = FastAPI()
 

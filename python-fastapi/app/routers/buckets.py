@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.metrics import buckets
+from app.metrics.histogram import buckets
 
 router = APIRouter(prefix="/buckets", tags=["Buckets"])
 

@@ -18,9 +18,12 @@ services:
       context: ./python-fastapi
     container_name: fastapi-application
     environment:
-      PORT: 8000
+      - PORT=8000
+      - PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus_metrics
     ports:
       - '8000:8000'
+    volumes:
+      - /tmp/prometheus_metrics:/tmp/prometheus_metrics
     restart: "no"
   java-spring:
     build:
