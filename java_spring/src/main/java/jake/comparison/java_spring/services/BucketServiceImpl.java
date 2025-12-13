@@ -3,7 +3,7 @@ package jake.comparison.java_spring.services;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PizzaBucketServiceImpl implements PizzaBucketService {
+public class BucketServiceImpl implements BucketService {
     // This list is not actually used in the creation of buckets since it is done
     // differently in java/spring. But leaving it here for consistency across services
     // (retrieval of semi-large in-memory data)
