@@ -13,6 +13,7 @@ services:
     - /dev/disk:/dev/disk:ro
     depends_on:
     - python-fastapi
+    - java-spring
   python-fastapi:
     build:
       context: ./python-fastapi
@@ -25,15 +26,20 @@ services:
     volumes:
       - /tmp/prometheus_metrics:/tmp/prometheus_metrics
     restart: "no"
+    depends_on:
+    - postgres
   java-spring:
     build:
       context: ./java_spring
     container_name: java-spring-application
     environment:
       PORT: 8001
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - '8001:8001'
     restart: "no"
+    depends_on:
+    - postgres
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -57,7 +63,21 @@ services:
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards_json:/var/lib/grafana/dashboards
+  postgres:
+    image: postgres:17
+    container_name: postgres-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: apiperformancecomparison
+    ports:
+      - "5432:5432" 
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d 
+
 volumes:
   prom_data:
+  postgres_data:
 
 
